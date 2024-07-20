@@ -8,6 +8,8 @@ const addProduct = catchError(async (req, res) => {
   // slugify the name
   req.body.slug = slugify(req.body.name);
   // get data from req.body
+  req.body.imageCover = req.files.imageCover[0].filename;
+  req.body.images = req.files.images.map((img) => img.filename);
   const product = new Product(req.body);
   // save data
   await product.save();
@@ -17,7 +19,15 @@ const addProduct = catchError(async (req, res) => {
 
 const allProducts = catchError(async (req, res, next) => {
   // get data from req.body
+  let pageNumber = req.query.page * 1 || 1;
+  if (req.query.page < 1) {
+    pageNumber = 1;
+  }
+  let limit = 2;
+  let skip = (parseInt(pageNumber) - 1) * limit;
   const products = await Product.find()
+    .skip(skip)
+    .limit(limit)
     .populate("category")
     .populate("subCategory")
     .populate("brand")
@@ -41,14 +51,32 @@ const getProduct = catchError(async (req, res, next) => {
 });
 
 const updateProduct = catchError(async (req, res, next) => {
-  // get data from req.body
-  const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
-    new: true,
+  // slugify the name
+  const updateProduct = catchError(async (req, res, next) => {
+    // Slugify the name
+    req.body.slug = slugify(req.body.name);
+    // Handle image files
+    if (req.files) {
+      if (req.files.imageCover && req.files.imageCover.length) {
+        req.body.imageCover = req.files.imageCover[0].filename; // Ensure this matches your form's field name
+      }
+      if (req.files.images && req.files.images.length) {
+        req.body.images = req.files.images.map((img) => img.filename);
+      }
+    }
+
+    // Update product in the database
+    const product = await Product.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    });
+    if (!product) {
+      return next(new AppError(messages.product.notFound, 404));
+    }
+    res.json({
+      message: messages.product.updatedSuccessfully,
+      data: product,
+    });
   });
-  // send response
-  product || next(new AppError(messages.product.notFound, 404));
-  !product ||
-    res.json({ message: messages.product.updatedSuccessfully, data: product });
 });
 
 const deleteProduct = catchError(async (req, res, next) => {

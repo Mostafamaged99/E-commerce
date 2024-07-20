@@ -6,7 +6,7 @@ const schema = new Schema(
       type: String,
       required: true,
       unique: [true, "Brand name must be unique"],
-      minLength: [3, "Brand name must be at least 3 characters long"],
+      minLength: [1, "Brand name must be at least 1 character long"],
     },
     slug: {
       type: String,
@@ -24,5 +24,9 @@ const schema = new Schema(
     versionKey: false,
   }
 );
+
+schema.post("init", (doc) => {
+  doc.logo = `http://localhost:3000/uploads/brands/` + doc.logo;
+})
 
 export const Brand = model("Brand", schema);

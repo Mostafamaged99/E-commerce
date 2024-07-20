@@ -20,7 +20,15 @@ const addSubCategory = catchError(async (req, res) => {
 
 const allSubCategories = catchError(async (req, res, next) => {
   // get data from req.body
-  const subCategories = await SubCategory.find().populate("category").populate("createdBy");
+  let filterObj = {};
+  if (req.params.category) {
+    filterObj.category = req.params.category;
+  }
+  const subCategories = await SubCategory.find({
+    filterObj,
+  })
+    .populate("category")
+    .populate("createdBy");
   // send response
   if (!subCategories.length) {
     return next(new AppError(messages.subCategory.notFound, 404));
@@ -33,7 +41,9 @@ const allSubCategories = catchError(async (req, res, next) => {
 
 const getSubCategory = catchError(async (req, res, next) => {
   // get data from req.body
-  const subCategory = await SubCategory.findById(req.params.id).populate("category").populate("createdBy");
+  const subCategory = await SubCategory.findById(req.params.id)
+    .populate("category")
+    .populate("createdBy");
   // send response
   subCategory || next(new AppError(messages.subCategory.notFound, 404));
   !subCategory ||
@@ -41,6 +51,8 @@ const getSubCategory = catchError(async (req, res, next) => {
 });
 
 const updateSubCategory = catchError(async (req, res, next) => {
+  // slugify the name
+  req.body.slug = slugify(req.body.name);
   // get data from req.body
   const subCategory = await SubCategory.findByIdAndUpdate(
     req.params.id,

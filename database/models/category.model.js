@@ -26,4 +26,8 @@ const schema = new Schema(
   }
 );
 
+schema.post("init", (doc) => {
+  doc.image = `http://localhost:3000/uploads/categories/` + doc.image;
+});
+
 export const Category = model("Category", schema);

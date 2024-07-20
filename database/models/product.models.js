@@ -75,4 +75,11 @@ const schema = new Schema(
   }
 );
 
+schema.post("init", (doc) => {
+  doc.imageCover = `http://localhost:3000/uploads/products/` + doc.imageCover;
+  doc.images = doc.images.map((image) => {
+    return `http://localhost:3000/uploads/products/` + image;
+  });
+})
+
 export const Product = model("Product", schema);

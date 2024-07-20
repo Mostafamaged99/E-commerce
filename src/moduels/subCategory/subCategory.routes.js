@@ -7,7 +7,9 @@ import {
   updateSubCategory,
 } from "./subCategory.controller.js";
 
-export const subCategoryRouter = Router();
+export const subCategoryRouter = Router({
+  mergeParams: true,
+});
 
 subCategoryRouter.route("/").post(addSubCategory).get(allSubCategories);
 subCategoryRouter
